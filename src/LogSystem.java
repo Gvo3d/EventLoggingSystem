@@ -8,13 +8,15 @@ import java.util.Date;
  */
 public class LogSystem {
     private static LogSystem instance = new LogSystem();
-    private String filePath="";
-    private String fileName = "system.log";
-    private String tempFilePath="";
-    private String tempFileName="system.log";
+    private String filePath="\\EventLog\\";
+    private String fileName = "system";
+    private String fileExtension ="log";
+    private String tempFilePath=filePath;
+    private String tempFileName=fileName;
+    private String tempFileExtension =fileExtension;
 
     private LogSystem() {
-        fileCreate(filePath, fileName);
+        fileCreate(filePath, fileName, fileExtension);
         initialization();
     }
 
@@ -23,8 +25,40 @@ public class LogSystem {
     }
 
     private boolean isFileCreated(){
-        File fileTry = new File(filePath+fileName);
+        File fileTry = new File(filePath, fileName+"."+fileExtension);
         return fileTry.exists();
+    }
+
+    private boolean fileCreate(String filePath, String fileName, String fileExtension){
+        File fileTry = new File(filePath, fileName+"."+fileExtension);
+        try {
+            if (!fileTry.exists()){
+                fileTry.createNewFile();
+                return true;
+            } else return false;
+        } catch (IOException e) {
+            this.filePath="";
+            this.fileName="system";
+            this.fileExtension="log";
+            return false;
+        }
+    }
+
+    private void initialization(){
+        File fileInit = new File(filePath, fileName+"."+fileExtension);
+        Date date = new Date();
+
+        try {
+            PrintWriter out = new PrintWriter(fileInit.getAbsoluteFile());
+            try {
+                out.print ("Program starts. Log system by Gvozd.");
+                out.print("File created: "+date);
+            } finally {
+                out.close();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String getFileName() {
@@ -43,41 +77,31 @@ public class LogSystem {
         this.tempFilePath = filePath;
     }
 
+    public String getFileExtension() {
+        return fileExtension;
+    }
+
+    public void setFileExtension(String fileExtension) {
+        this.fileExtension = fileExtension;
+    }
+
     public boolean commitFileChanges(){
-        if (fileCreate(tempFilePath, tempFileName)) {
+        if (fileCreate(tempFilePath, tempFileName, tempFileExtension)) {
+            File fileInit = new File(filePath, fileName+"."+fileExtension);
+            File fileInit2 = new File(tempFilePath, tempFileName+"."+tempFileExtension);
+            fileInit.renameTo(fileInit2);
             return true;
         } else return false;
     }
 
-    public boolean fileCreate(String filePath, String fileName){
-        File fileTry = new File(filePath+fileName);
-        try {
-            if (!fileTry.exists()){
-                fileTry.createNewFile();
-                return true;
-            } else return false;
-        } catch (IOException e) {
-            this.filePath="";
-            this.fileName="system.log";
-            return false;
-        }
-    }
-
-    private void initialization(){
-        File fileInit = new File(filePath+fileName);
-        Date date = new Date();
-
-        try {
-            PrintWriter out = new PrintWriter(fileInit.getAbsoluteFile());
-            try {
-                out.print("File created: "+date);
-            } finally {
-                out.close();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    public void update(String nameFile, String newText) throws FileNotFoundException {
+//        exists(fileName);
+//        StringBuilder sb = new StringBuilder();
+//        String oldFile = read(nameFile);
+//        sb.append(oldFile);
+//        sb.append(newText);
+//        write(nameFile, sb.toString());
+//    }
 
 
 }
