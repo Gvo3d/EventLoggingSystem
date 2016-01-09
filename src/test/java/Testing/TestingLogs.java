@@ -4,9 +4,6 @@ import logger.LogSystem;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-/**
- * Created by Gvozd on 09.01.2016.
- */
 public class TestingLogs {
 
     @Test
