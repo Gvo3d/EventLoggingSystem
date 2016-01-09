@@ -2,11 +2,14 @@ import java.io.*;
 import java.util.Date;
 
 /**
- * Created by Gvozd on 09.01.2016.
+ * JAVA LOGGER
+ * Created by Yakimov Denis for Hillel Java elementary courses on 09.01.2016.
  */
+
 public class LogSystem {
     private static LogSystem instance = new LogSystem();
     private File logfile;
+    private Logger logger=null;
     private String configFileName = "LoggerConfig.log";
 
     private LogSystem() {
@@ -122,12 +125,14 @@ public class LogSystem {
                     }
                 }
             } else {
-                try { tempLog.createNewFile();
-                    logfile = tempLog;
+                try {
+                    tempLog.createNewFile();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
+        logfile = tempLog;
+        logInit();
         write("Log file created.");
     }
 
@@ -169,8 +174,44 @@ public class LogSystem {
         return tempMon+"-"+tempDay+"-"+tempYear;
     }
 
+
+    private void logInit() {
+        Date date = new Date();
+        try {
+            PrintWriter out = new PrintWriter(logfile.getAbsoluteFile());
+            try {
+                out.print ("Log system starts.\n");
+                out.print("File created: "+date+"\n");
+            } finally {
+                out.close();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     private void write(String s) {
-        System.out.println(s);
+        Date date = new Date();
+        try {
+            PrintWriter out = new PrintWriter(logfile.getAbsoluteFile());
+            try {
+                out.print ("Log system starts.\n");
+                out.print("File created: "+date+"\n");
+            } finally {
+                out.close();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println(logfile.length());
+    }
+
+    private class Logger{
+
+        protected Logger() {
+
+        }
     }
 
 }
