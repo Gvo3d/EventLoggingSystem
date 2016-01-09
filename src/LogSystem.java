@@ -1,6 +1,4 @@
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.Date;
 
 /**
@@ -8,66 +6,132 @@ import java.util.Date;
  */
 public class LogSystem {
     private static LogSystem instance = new LogSystem();
-    private String filePath="";
-    private final String FILENAME = "system";
-    private String fileExtension ="log";
-    private String tempFilePath=filePath;
-    private String tempFileExtension =fileExtension;
+    private File logfile;
+    private String configFileName = "LoggerConfig.log";
 
     private LogSystem() {
-        File tempFile = new File("");
-        String tempPath = tempFile.getAbsolutePath()+"\\EventLog\\";
-        System.out.println(tempPath);
-        tempFile = new File (tempPath);
-        tempFile.mkdirs();
-        filePath = tempPath;
-        fileCreate(filePath, fileExtension);
-        initialization();
+        getLoggerConfig();
     }
 
-    public static LogSystem getInstance(){
+    public static LogSystem getInstance() {
         return instance;
     }
 
-    private boolean isFileCreated(){
-        File fileTry = new File(filePath, FILENAME+"."+fileExtension);
-        return fileTry.exists();
-    }
+    private void getLoggerConfig(){
+        boolean isAbsolutePath=false;
+        String filePath="";
+        String fileName="";
+        String fileExtension="";
 
-    private boolean fileCreate(String filePath, String fileExtension){
-        File fileTry = new File(filePath, FILENAME+getSystemDate()+"."+fileExtension);
+        File configFile = new File(configFileName);
         try {
-            if (!fileTry.exists()){
-                fileTry.createNewFile();
-                return true;
-            } else return false;
-        } catch (IOException e) {
-            File tempFile = new File("");
-            String tempPath = tempFile.getAbsolutePath()+"\\EventLog\\";
-            this.filePath=tempPath;
-            this.fileExtension="log";
-            return false;
-        }
-    }
-
-    private void initialization(){
-        File fileInit = new File(filePath, FILENAME+"."+fileExtension);
-        Date date = new Date();
-
-        try {
-            PrintWriter out = new PrintWriter(fileInit.getAbsoluteFile());
-            try {
-                out.print ("Program starts. Log system by Gvozd.");
-                out.print("File created: "+date);
-            } finally {
-                out.close();
+            if (!configFile.exists()) {
+                createConfigFile();
             }
-        } catch (IOException e) {
+            try {
+                BufferedReader in = new BufferedReader(new FileReader(configFile.getAbsoluteFile()));
+                try {
+                    String s="";
+                    for (int i=0; i<4; i++){
+                        s=in.readLine();
+                        switch (i){
+                            case 0: try{
+                                isAbsolutePath = Boolean.parseBoolean(s);
+                            } catch (Exception e) {
+                                createConfigFile();;
+                            }
+                                break;
+
+                            case 1: try{
+                                filePath = s;
+                            } catch (Exception e) {
+                                createConfigFile();
+                            }
+                                break;
+
+                            case 2: try{
+                                fileName = s;
+                            } catch (Exception e) {
+                                createConfigFile();
+                            }
+                                break;
+
+                            case 3: try{
+                                fileExtension = s;
+                            } catch (Exception e) {
+                                createConfigFile();
+                            }
+                                break;
+                        }
+                    }
+                } finally {
+                    in.close();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            setLogfile(isAbsolutePath, filePath, fileName, fileExtension);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public String getSystemDate(){
+    private void createConfigFile(){
+        File configFile = new File(configFileName);
+        try {
+            configFile.createNewFile();
+            PrintWriter configOut = new PrintWriter(configFile.getAbsoluteFile());
+            configOut.print("false\n" +
+                    "\\EventLog\\\n" +
+                    "system\n" +
+                    "log");
+            configOut.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setLogfile(boolean isAbsolutePath, String filePath, String fileName, String fileExtension){
+        File tempFile = new File("");
+        String tempPath="";
+        if (!isAbsolutePath) {
+           tempPath = tempFile.getAbsolutePath()+filePath;
+        } else tempPath=filePath;
+            tempFile = new File (tempPath);
+            tempFile.mkdirs();
+        createLogFile(tempFile+"\\"+fileName, fileExtension);
+    }
+
+    private void createLogFile(String filePathAndName, String fileExtension) {
+        File tempLog = new File(filePathAndName + "-" + getSystemDate() + "." + fileExtension);
+
+            if (tempLog.exists()) {
+                boolean isLogCreated=false;
+                int perForAdding=0;
+                while (!isLogCreated){
+                    perForAdding++;
+                    tempLog = new File (filePathAndName + "-" + getSystemDate() +"-ver"+perForAdding+"." + fileExtension);
+                    if (!tempLog.exists()) {
+                        try {
+                            tempLog.createNewFile();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } finally {
+                            isLogCreated=true;
+                        }
+                    }
+                }
+            } else {
+                try { tempLog.createNewFile();
+                    logfile = tempLog;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        write("Log file created.");
+    }
+
+    private String getSystemDate(){
         Date date = new Date();
         String tempTime = date.toString();
         String tempMons, tempMon, tempDay, tempYear;
@@ -105,39 +169,7 @@ public class LogSystem {
         return tempMon+"-"+tempDay+"-"+tempYear;
     }
 
-    public String getFilePath() {
-        return filePath;
+    private void write(String s) {
     }
-
-    public void setFilePath(String filePath) {
-        this.tempFilePath = filePath;
-    }
-
-    public String getFileExtension() {
-        return fileExtension;
-    }
-
-    public void setFileExtension(String fileExtension) {
-        this.fileExtension = fileExtension;
-    }
-
-    public boolean commitFileChanges(){
-        if (fileCreate(tempFilePath, tempFileExtension)) {
-            File fileInit = new File(filePath, FILENAME+"."+fileExtension);
-            File fileInit2 = new File(tempFilePath, FILENAME+"."+tempFileExtension);
-            fileInit.renameTo(fileInit2);
-            return true;
-        } else return false;
-    }
-
-//    public void update(String nameFile, String newText) throws FileNotFoundException {
-//        exists(fileName);
-//        StringBuilder sb = new StringBuilder();
-//        String oldFile = read(nameFile);
-//        sb.append(oldFile);
-//        sb.append(newText);
-//        write(nameFile, sb.toString());
-//    }
-
 
 }
