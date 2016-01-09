@@ -170,6 +170,7 @@ public class LogSystem {
     }
 
     private void write(String s) {
+        System.out.println(s);
     }
 
 }
