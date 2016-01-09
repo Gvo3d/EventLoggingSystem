@@ -190,28 +190,64 @@ public class LogSystem {
         }
     }
 
-
-    private void write(String s) {
-        Date date = new Date();
-        try {
-            PrintWriter out = new PrintWriter(logfile.getAbsoluteFile());
-            try {
-                out.print ("Log system starts.\n");
-                out.print("File created: "+date+"\n");
-            } finally {
-                out.close();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println(logfile.length());
+    public void write(String LogStringData) {
+        openUpLogger(LogStringData);
     }
 
-    private class Logger{
+    public void writeWithClassName(Object whoThrowedLogString, String LogStringData) {
+        openUpLogger(whoThrowedLogString.getClass()+" "+LogStringData);
+    }
 
-        protected Logger() {
+    private void openUpLogger(String data){
+        if (logger==null){
+            logger = new Logger(logfile);
+        } logger.addLogEvent(data);
+        logger.run();
+    }
 
+    private class Logger implements Runnable{
+        private WriteQueue queue;
+        private File logFile;
+
+        protected Logger(File logFile) {
+            queue=new WriteQueue();
+            this.logFile = logFile;
         }
+
+        protected void addLogEvent(String logData){
+            queue.push(logData);
+        }
+
+        private void writeLogFile(){
+            Date date = new Date();
+            try {
+                PrintWriter out = new PrintWriter(logfile.getAbsoluteFile());
+                try {
+                    for (Object srt:queue){
+                        out.print(date+" "+queue.pop());
+                    }
+                } finally {
+                    out.close();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        protected boolean isEmpty(){
+            return queue.isEmpty();
+        }
+
+        @Override
+        public void run() {
+            do{
+//                try {
+//                    wait(1000);
+//                } catch (InterruptedException e) {}
+                writeLogFile();
+            }  while (!queue.isEmpty());
+        }
+
     }
 
 }
