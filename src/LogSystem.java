@@ -8,15 +8,20 @@ import java.util.Date;
  */
 public class LogSystem {
     private static LogSystem instance = new LogSystem();
-    private String filePath="\\EventLog\\";
-    private String fileName = "system";
+    private String filePath="";
+    private final String FILENAME = "system";
     private String fileExtension ="log";
     private String tempFilePath=filePath;
-    private String tempFileName=fileName;
     private String tempFileExtension =fileExtension;
 
     private LogSystem() {
-        fileCreate(filePath, fileName, fileExtension);
+        File tempFile = new File("");
+        String tempPath = tempFile.getAbsolutePath()+"\\EventLog\\";
+        System.out.println(tempPath);
+        tempFile = new File (tempPath);
+        tempFile.mkdirs();
+        filePath = tempPath;
+        fileCreate(filePath, fileExtension);
         initialization();
     }
 
@@ -25,27 +30,28 @@ public class LogSystem {
     }
 
     private boolean isFileCreated(){
-        File fileTry = new File(filePath, fileName+"."+fileExtension);
+        File fileTry = new File(filePath, FILENAME+"."+fileExtension);
         return fileTry.exists();
     }
 
-    private boolean fileCreate(String filePath, String fileName, String fileExtension){
-        File fileTry = new File(filePath, fileName+"."+fileExtension);
+    private boolean fileCreate(String filePath, String fileExtension){
+        File fileTry = new File(filePath, FILENAME+getSystemDate()+"."+fileExtension);
         try {
             if (!fileTry.exists()){
                 fileTry.createNewFile();
                 return true;
             } else return false;
         } catch (IOException e) {
-            this.filePath="";
-            this.fileName="system";
+            File tempFile = new File("");
+            String tempPath = tempFile.getAbsolutePath()+"\\EventLog\\";
+            this.filePath=tempPath;
             this.fileExtension="log";
             return false;
         }
     }
 
     private void initialization(){
-        File fileInit = new File(filePath, fileName+"."+fileExtension);
+        File fileInit = new File(filePath, FILENAME+"."+fileExtension);
         Date date = new Date();
 
         try {
@@ -61,12 +67,42 @@ public class LogSystem {
         }
     }
 
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.tempFileName = fileName;
+    public String getSystemDate(){
+        Date date = new Date();
+        String tempTime = date.toString();
+        String tempMons, tempMon, tempDay, tempYear;
+        tempMons=tempTime.substring(4,7);
+        switch (tempMons){
+            case "Jan":tempMon="01";
+                break;
+            case "Feb":tempMon="02";
+                break;
+            case "Mar":tempMon="03";
+                break;
+            case "Apr":tempMon="04";
+                break;
+            case "May":tempMon="05";
+                break;
+            case "Jun":tempMon="06";
+                break;
+            case "Jul":tempMon="07";
+                break;
+            case "Aug":tempMon="08";
+                break;
+            case "Sep":tempMon="09";
+                break;
+            case "Oct":tempMon="10";
+                break;
+            case "Nov":tempMon="11";
+                break;
+            case "Dec":tempMon="12";
+                break;
+            default: tempMon="00";
+                break;
+        }
+        tempDay=tempTime.substring(8,10);
+        tempYear=tempTime.substring(24,28);
+        return tempMon+"-"+tempDay+"-"+tempYear;
     }
 
     public String getFilePath() {
@@ -86,9 +122,9 @@ public class LogSystem {
     }
 
     public boolean commitFileChanges(){
-        if (fileCreate(tempFilePath, tempFileName, tempFileExtension)) {
-            File fileInit = new File(filePath, fileName+"."+fileExtension);
-            File fileInit2 = new File(tempFilePath, tempFileName+"."+tempFileExtension);
+        if (fileCreate(tempFilePath, tempFileExtension)) {
+            File fileInit = new File(filePath, FILENAME+"."+fileExtension);
+            File fileInit2 = new File(tempFilePath, FILENAME+"."+tempFileExtension);
             fileInit.renameTo(fileInit2);
             return true;
         } else return false;

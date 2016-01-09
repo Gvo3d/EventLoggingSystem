@@ -4,7 +4,7 @@
 public class FileInput {
     public static void main(String[] args) {
         LogSystem log = LogSystem.getInstance();
-        log.setFileName("fuck");
-        log.commitFileChanges();
+//        log.setFileName("fuck");
+//        log.commitFileChanges();
     }
 }
